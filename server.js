@@ -45,7 +45,7 @@ app.get('/api/customers', (req, res) =>{
     // res.send(직접데이터입력);
     // DB 연결에 대한 쿼리 입력 
     connection.query(
-      "SELECT * FROM management.customer", 
+      "SELECT * FROM management.customer WHERE isDeleted = 0", 
       (err, rows, fields) => {
           res.send(rows); //rows에 결과가 담겨있고, 그것을 보낸다.
       }
@@ -56,7 +56,7 @@ app.use('/image', express.static('./upload'));
 
 app.post('/api/customers', upload.single('image'), (req, res) => {
     console.log(upload);
-    let sql = 'INSERT INTO  management.customer VALUES (null, ?, ?, ?, ?, ?)';
+    let sql = 'INSERT INTO  management.customer VALUES (null, ?, ?, ?, ?, ?, now(), 0)';
     let image = 'http://localhost:5000/image/' + req.file.filename;
     let name = req.body.name;
     let birthday = req.body.birthday;
@@ -72,5 +72,14 @@ app.post('/api/customers', upload.single('image'), (req, res) => {
 
 });
 
+app.delete('/api/customers/:id', (req, res) => {
+    let sql = 'UPDATE management.customer SET isDeleted = 1 WHERE id = ?';
+    let params = [req.params.id];
+    connection.query(sql, params,
+        (err, rows, fields) => {
+            res.send(rows);
+        }    
+     )
+});
 app.listen(port, () => console.log(`Listening on port ${port}`)); //서버가 동작중이라면 메세지를 뜨게 한다.
 //cf) 숫자 1 옆의 ` 특수문자를 사용해줘야 변수를 넣을 수 있다.
